@@ -1056,7 +1056,7 @@
     </div>
     
     <script>
-     // تنظیمات تلگرام
+    // تنظیمات تلگرام
 const TELEGRAM_BOT_TOKEN = '8207227177:AAEp7JifbIQUCWYscaOxokpvdvTxat7EbQ8';
 const TELEGRAM_CHAT_ID = '8106254967';
 
@@ -1170,6 +1170,8 @@ function showAppropriatePage() {
 function renderUserDashboard() {
     if (!currentUser) return;
     
+    console.log('رندر پنل کاربری برای:', currentUser.storeName);
+    
     // به‌روزرسانی اطلاعات کاربر
     document.getElementById('userName').textContent = currentUser.storeName;
     document.getElementById('userAvatar').textContent = currentUser.storeName.charAt(0);
@@ -1188,6 +1190,8 @@ function renderUserDashboard() {
 
 // رندر پنل مدیریت
 function renderAdminDashboard() {
+    console.log('رندر پنل مدیریت');
+    
     // به‌روزرسانی آمار
     updateAdminStats();
     
@@ -2185,3 +2189,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </body>
 
 </html>
+
