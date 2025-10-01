@@ -729,45 +729,12 @@
                     <button type="submit">ورود به پنل مدیریت</button>
                 </form>
                 
-                <div style="margin-top: 20px; text-align: center;">
-                    <p>حساب کاربری ندارید؟</p>
-                    <button type="button" class="btn-success" id="showRegisterForm">ثبتنام فروشگاه جدید</button>
-                </div>
+               
             </div>
         </div>
         
         <!-- فرم ثبتنام -->
-        <div id="registerPage" class="login-container" style="display: none;">
-            <div class="login-card">
-                <h2>ثبتنام فروشگاه جدید</h2>
-                <form id="registerForm">
-                    <div class="form-group">
-                        <label for="storeName">نام فروشگاه</label>
-                        <input type="text" id="storeName" placeholder="نام فروشگاه خود را وارد کنید" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="ownerName">نام صاحب فروشگاه</label>
-                        <input type="text" id="ownerName" placeholder="نام کامل خود را وارد کنید" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="registerEmail">ایمیل</label>
-                        <input type="email" id="registerEmail" placeholder="ایمیل خود را وارد کنید" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="registerPassword">رمز عبور</label>
-                        <input type="password" id="registerPassword" placeholder="رمز عبور خود را وارد کنید" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="confirmPassword">تکرار رمز عبور</label>
-                        <input type="password" id="confirmPassword" placeholder="رمز عبور خود را تکرار کنید" required>
-                    </div>
-                    <button type="submit" class="btn-success">ثبتنام</button>
-                </form>
-                <div style="margin-top: 20px; text-align: center;">
-                    <button type="button" class="btn-warning" id="backToLogin">بازگشت به صفحه ورود</button>
-                </div>
-            </div>
-        </div>
+       
         
         <!-- پنل کاربری فروشگاهدار -->
         <div id="userDashboard" style="display: none;">
@@ -1056,869 +1023,1307 @@
     </div>
     
     <script>
- // تنظیمات پایه
-const STORAGE_KEYS = {
-    USERS: 'store_users',
-    ADMIN: 'store_admin',
-    CURRENT_USER: 'current_user'
-};
-
-// داده‌های پیشفرض
-const DEFAULT_DATA = {
-    users: [
-        {
-            id: 1,
-            storeName: "فروشگاه نمونه",
-            ownerName: "مدیر نمونه",
-            email: "store@example.com",
-            password: "123456",
-            createdAt: new Date().toISOString(),
-            products: [
-                { id: 1, name: "گوشی موبایل سامسونگ", category: "1", price: 8500000, parent: null, description: "گوشی موبایل سری سامسونگ", isSold: false },
-                { id: 2, name: "مدل Galaxy S21", category: "1", price: 10200000, parent: 1, description: "گوشی پرچمدار سری گلکسی", isSold: false }
-            ],
-            categories: [
-                { id: 1, name: "الکترونیک", parent: null, productCount: 2 },
-                { id: 2, name: "موبایل و تبلت", parent: 1, productCount: 2 }
-            ],
-            soldItems: []
-        }
-    ],
-    admin: {
-        email: "admin@example.com",
-        password: "admin123"
-    }
-};
-
-let users = [];
-let currentUser = null;
-let admin = null;
-
-// بارگذاری داده‌ها
-function loadData() {
-    try {
-        const storedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
-        const storedAdmin = localStorage.getItem(STORAGE_KEYS.ADMIN);
-        const storedCurrentUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+        // تنظیمات تلگرام
+        const TELEGRAM_BOT_TOKEN = '8207227177:AAEp7JifbIQUCWYscaOxokpvdvTxat7EbQ8';
+        const TELEGRAM_CHAT_ID = '8106254967';
         
-        users = storedUsers ? JSON.parse(storedUsers) : DEFAULT_DATA.users;
-        admin = storedAdmin ? JSON.parse(storedAdmin) : DEFAULT_DATA.admin;
-        
-        if (storedCurrentUser) {
-            currentUser = JSON.parse(storedCurrentUser);
-        }
-        
-        if (!storedUsers || !storedAdmin) {
-            saveData();
-        }
-    } catch (error) {
-        console.error('خطا در بارگذاری:', error);
-        users = DEFAULT_DATA.users;
-        admin = DEFAULT_DATA.admin;
-        currentUser = null;
-    }
-}
-
-// ذخیره داده‌ها
-function saveData() {
-    try {
-        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-        localStorage.setItem(STORAGE_KEYS.ADMIN, JSON.stringify(admin));
-        if (currentUser) {
-            localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
-        }
-    } catch (error) {
-        console.error('خطا در ذخیره:', error);
-        alert('خطا در ذخیره داده‌ها');
-    }
-}
-
-// نمایش صفحات
-function showAppropriatePage() {
-    const loginPage = document.getElementById('loginPage');
-    const registerPage = document.getElementById('registerPage');
-    const userDashboard = document.getElementById('userDashboard');
-    const adminDashboard = document.getElementById('adminDashboard');
-    
-    // مخفی کردن همه
-    loginPage.style.display = 'none';
-    registerPage.style.display = 'none';
-    userDashboard.style.display = 'none';
-    adminDashboard.style.display = 'none';
-    
-    if (currentUser) {
-        if (currentUser.isAdmin) {
-            adminDashboard.style.display = 'block';
-            renderAdminDashboard();
-        } else {
-            userDashboard.style.display = 'block';
-            renderUserDashboard();
-        }
-    } else {
-        loginPage.style.display = 'flex';
-    }
-}
-
-// رندر پنل کاربر
-function renderUserDashboard() {
-    if (!currentUser) return;
-    
-    // اطلاعات کاربر
-    document.getElementById('userName').textContent = currentUser.storeName;
-    document.getElementById('userAvatar').textContent = currentUser.storeName.charAt(0);
-    
-    // آمار
-    updateUserStats();
-    
-    // پر کردن جداول
-    renderUserProducts();
-    renderUserCategories();
-    renderUserSoldItems();
-    populateDropdowns();
-    updateChecklist();
-}
-
-// آمار کاربر
-function updateUserStats() {
-    if (!currentUser) return;
-    
-    document.getElementById('totalProducts').textContent = currentUser.products.length;
-    document.getElementById('totalCategories').textContent = currentUser.categories.length;
-    document.getElementById('totalParents').textContent = currentUser.products.filter(p => p.parent === null).length;
-    document.getElementById('totalSold').textContent = currentUser.soldItems.length;
-}
-
-// رندر محصولات
-function renderUserProducts() {
-    if (!currentUser) return;
-    
-    const tbody = document.getElementById('productsTableBody');
-    tbody.innerHTML = '';
-    
-    currentUser.products.forEach(product => {
-        const parentName = product.parent ? 
-            currentUser.products.find(p => p.id === product.parent)?.name || 'نامشخص' : 
-            '-';
-            
-        const row = document.createElement('tr');
-        row.className = product.parent ? 'child-item' : 'parent-item';
-        row.innerHTML = `
-            <td>${product.name}</td>
-            <td>${getCategoryName(product.category)}</td>
-            <td>${product.price.toLocaleString('fa-IR')}</td>
-            <td>${parentName}</td>
-            <td>${product.isSold ? '<span style="color:red">فروخته شده</span>' : '<span style="color:green">موجود</span>'}</td>
-            <td class="actions">
-                <button class="btn-success" onclick="openEditProductModal(${product.id})">ویرایش</button>
-                <button class="btn-danger" onclick="deleteUserProduct(${product.id})">حذف</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-// رندر دسته‌بندی‌ها
-function renderUserCategories() {
-    if (!currentUser) return;
-    
-    const tbody = document.getElementById('categoriesTableBody');
-    tbody.innerHTML = '';
-    
-    currentUser.categories.forEach(category => {
-        const parentName = category.parent ? 
-            currentUser.categories.find(c => c.id === category.parent)?.name || 'نامشخص' : 
-            '-';
-            
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${category.name}</td>
-            <td>${parentName}</td>
-            <td>${category.productCount}</td>
-            <td class="actions">
-                <button class="btn-success" onclick="editUserCategory(${category.id})">ویرایش</button>
-                <button class="btn-danger" onclick="deleteUserCategory(${category.id})">حذف</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-// رندر محصولات فروخته شده
-function renderUserSoldItems() {
-    if (!currentUser) return;
-    
-    const container = document.getElementById('soldItemsList');
-    container.innerHTML = '';
-    
-    if (currentUser.soldItems.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: var(--secondary);">هیچ محصولی فروخته نشده است</p>';
-        return;
-    }
-    
-    currentUser.soldItems.forEach((item, index) => {
-        const soldItem = document.createElement('div');
-        soldItem.className = 'sold-item';
-        soldItem.innerHTML = `
-            <div class="sold-item-info">
-                <div class="sold-item-name">${item.name}</div>
-                <div class="sold-item-details">
-                    قیمت: ${item.price.toLocaleString('fa-IR')} افغانی
-                </div>
-            </div>
-            <div class="sold-item-actions">
-                <button class="btn-warning" onclick="returnUserProduct(${index})">بازگردانی</button>
-            </div>
-        `;
-        container.appendChild(soldItem);
-    });
-}
-
-// پر کردن dropdownها
-function populateDropdowns() {
-    if (!currentUser) return;
-    
-    // دسته‌بندی‌ها
-    const categoryDropdowns = ['productCategory', 'editProductCategory'];
-    categoryDropdowns.forEach(id => {
-        const dropdown = document.getElementById(id);
-        if (dropdown) {
-            dropdown.innerHTML = '<option value="">انتخاب کنید</option>';
-            currentUser.categories.forEach(category => {
-                const option = document.createElement('option');
-                option.value = category.id;
-                option.textContent = category.name;
-                dropdown.appendChild(option);
-            });
-        }
-    });
-    
-    // والد محصولات
-    const parentDropdowns = ['productParent', 'editProductParent'];
-    parentDropdowns.forEach(id => {
-        const dropdown = document.getElementById(id);
-        if (dropdown) {
-            dropdown.innerHTML = '<option value="">هیچکدام (محصول اصلی)</option>';
-            currentUser.products.filter(p => !p.parent).forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = product.name;
-                dropdown.appendChild(option);
-            });
-        }
-    });
-    
-    // والد دسته‌بندی‌ها
-    const categoryParent = document.getElementById('categoryParent');
-    if (categoryParent) {
-        categoryParent.innerHTML = '<option value="">هیچکدام (دسته بندی اصلی)</option>';
-        currentUser.categories.filter(c => !c.parent).forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = category.name;
-            categoryParent.appendChild(option);
-        });
-    }
-}
-
-// آپدیت چکلیست
-function updateChecklist() {
-    if (!currentUser) return;
-    
-    const checklist = document.getElementById('productsChecklist');
-    checklist.innerHTML = '';
-    
-    currentUser.products.filter(p => !p.isSold).forEach(product => {
-        const item = document.createElement('div');
-        item.className = 'checkbox-item';
-        item.innerHTML = `
-            <input type="checkbox" id="product-${product.id}" value="${product.id}">
-            <label for="product-${product.id}">${product.name} - ${product.price.toLocaleString('fa-IR')} افغانی</label>
-        `;
-        checklist.appendChild(item);
-    });
-}
-
-// گرفتن نام دسته‌بندی
-function getCategoryName(categoryId) {
-    if (!currentUser) return 'نامشخص';
-    const category = currentUser.categories.find(c => c.id == categoryId);
-    return category ? category.name : 'نامشخص';
-}
-
-// اضافه کردن محصول
-function addUserProduct(name, category, price, parent, description) {
-    if (!currentUser) return;
-    
-    const newId = currentUser.products.length > 0 ? Math.max(...currentUser.products.map(p => p.id)) + 1 : 1;
-    const newProduct = {
-        id: newId,
-        name,
-        category,
-        price: parseInt(price),
-        parent: parent ? parseInt(parent) : null,
-        description,
-        isSold: false
-    };
-    
-    currentUser.products.push(newProduct);
-    
-    // آپدیت تعداد محصولات در دسته‌بندی
-    const categoryObj = currentUser.categories.find(c => c.id == category);
-    if (categoryObj) categoryObj.productCount++;
-    
-    updateUserInList();
-    saveData();
-    renderUserDashboard();
-}
-
-// اضافه کردن دسته‌بندی
-function addUserCategory(name, parent) {
-    if (!currentUser) return;
-    
-    const newId = currentUser.categories.length > 0 ? Math.max(...currentUser.categories.map(c => c.id)) + 1 : 1;
-    const newCategory = {
-        id: newId,
-        name,
-        parent: parent ? parseInt(parent) : null,
-        productCount: 0
-    };
-    
-    currentUser.categories.push(newCategory);
-    updateUserInList();
-    saveData();
-    renderUserDashboard();
-}
-
-// حذف محصول
-function deleteUserProduct(id) {
-    if (!currentUser || !confirm('آیا از حذف این محصول اطمینان دارید؟')) return;
-    
-    const product = currentUser.products.find(p => p.id === id);
-    if (product) {
-        // آپدیت تعداد محصولات در دسته‌بندی
-        const categoryObj = currentUser.categories.find(c => c.id == product.category);
-        if (categoryObj) categoryObj.productCount--;
-    }
-    
-    currentUser.products = currentUser.products.filter(p => p.id !== id);
-    updateUserInList();
-    saveData();
-    renderUserDashboard();
-}
-
-// حذف دسته‌بندی
-function deleteUserCategory(id) {
-    if (!currentUser || !confirm('آیا از حذف این دسته بندی اطمینان دارید؟')) return;
-    
-    currentUser.categories = currentUser.categories.filter(c => c.id !== id);
-    updateUserInList();
-    saveData();
-    renderUserDashboard();
-}
-
-// باز کردن مودال ویرایش محصول
-function openEditProductModal(id) {
-    if (!currentUser) return;
-    
-    const product = currentUser.products.find(p => p.id === id);
-    if (!product) return;
-    
-    document.getElementById('editProductId').value = product.id;
-    document.getElementById('editProductName').value = product.name;
-    document.getElementById('editProductPrice').value = product.price;
-    document.getElementById('editProductDescription').value = product.description || '';
-    document.getElementById('editProductCategory').value = product.category;
-    document.getElementById('editProductParent').value = product.parent || '';
-    
-    document.getElementById('editProductModal').style.display = 'flex';
-}
-
-// ویرایش دسته‌بندی
-function editUserCategory(id) {
-    alert('امکان ویرایش در این نسخه موجود نیست!');
-}
-
-// بازگردانی محصول
-function returnUserProduct(index) {
-    if (!currentUser) return;
-    
-    const soldItem = currentUser.soldItems[index];
-    const product = currentUser.products.find(p => p.id === soldItem.id);
-    
-    if (product) {
-        product.isSold = false;
-    }
-    
-    currentUser.soldItems.splice(index, 1);
-    updateUserInList();
-    saveData();
-    renderUserDashboard();
-}
-
-// ثبت‌نام کاربر
-function registerUser(storeName, ownerName, email, password) {
-    if (users.some(user => user.email === email)) {
-        alert('این ایمیل قبلاً ثبت‌نام شده است');
-        return false;
-    }
-    
-    const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
-    const newUser = {
-        id: newId,
-        storeName,
-        ownerName,
-        email,
-        password,
-        createdAt: new Date().toISOString(),
-        products: [],
-        categories: [],
-        soldItems: []
-    };
-    
-    users.push(newUser);
-    saveData();
-    return true;
-}
-
-// ورود کاربر
-function loginUser(email, password) {
-    const user = users.find(u => u.email === email && u.password === password);
-    if (user) {
-        currentUser = user;
-        saveData();
-        return true;
-    }
-    return false;
-}
-
-// ورود مدیر
-function loginAdmin(email, password) {
-    if (email === admin.email && password === admin.password) {
-        currentUser = {
-            id: 0,
-            storeName: "مدیر سیستم",
-            ownerName: "مدیر",
-            email: admin.email,
-            isAdmin: true
+        // کلیدهای ذخیرهسازی
+        const STORAGE_KEYS = {
+            USERS: 'store_users',
+            ADMIN: 'store_admin',
+            CURRENT_USER: 'current_user'
         };
-        saveData();
-        return true;
-    }
-    return false;
-}
-
-// خروج
-function logout() {
-    currentUser = null;
-    saveData();
-    showAppropriatePage();
-}
-
-// آپدیت کاربر در لیست
-function updateUserInList() {
-    if (!currentUser) return;
-    const index = users.findIndex(u => u.id === currentUser.id);
-    if (index !== -1) {
-        users[index] = currentUser;
-    }
-}
-
-// پنل مدیریت
-function renderAdminDashboard() {
-    // آمار
-    document.getElementById('adminTotalStores').textContent = users.length;
-    document.getElementById('adminTotalProducts').textContent = users.reduce((total, user) => total + user.products.length, 0);
-    document.getElementById('adminTotalSales').textContent = users.reduce((total, user) => total + user.soldItems.length, 0);
-    document.getElementById('adminNewStores').textContent = users.length;
-    
-    // لیست فروشگاه‌ها
-    renderStoresList();
-}
-
-function renderStoresList() {
-    const container = document.getElementById('storesList');
-    container.innerHTML = '';
-    
-    users.forEach(user => {
-        const storeItem = document.createElement('div');
-        storeItem.className = 'store-item';
-        storeItem.innerHTML = `
-            <div class="store-info">
-                <div class="store-name">${user.storeName}</div>
-                <div class="store-email">${user.email} - ${user.ownerName}</div>
-                <div class="store-details">
-                    محصولات: ${user.products.length} | دسته‌بندی‌ها: ${user.categories.length} | فروش: ${user.soldItems.length}
-                </div>
-            </div>
-            <div class="store-actions">
-                <button class="btn-info" onclick="viewStoreDetails(${user.id})">مشاهده</button>
-                <button class="btn-warning" onclick="editStore(${user.id})">ویرایش</button>
-                <button class="btn-danger" onclick="deleteStore(${user.id})">حذف</button>
-            </div>
-        `;
-        container.appendChild(storeItem);
-    });
-}
-
-function viewStoreDetails(storeId) {
-    const store = users.find(u => u.id === storeId);
-    if (store) {
-        alert(`فروشگاه: ${store.storeName}\nصاحب: ${store.ownerName}\nایمیل: ${store.email}\nمحصولات: ${store.products.length}`);
-    }
-}
-
-function editStore(storeId) {
-    alert('امکان ویرایش در این نسخه موجود نیست!');
-}
-
-function deleteStore(storeId) {
-    if (confirm('آیا از حذف این فروشگاه اطمینان دارید؟')) {
-        users = users.filter(u => u.id !== storeId);
-        saveData();
-        renderAdminDashboard();
-    }
-}
-
-function createStoreByAdmin(storeName, ownerName, email, password) {
-    if (users.some(user => user.email === email)) {
-        alert('این ایمیل قبلاً ثبت‌نام شده است');
-        return false;
-    }
-    
-    const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
-    const newUser = {
-        id: newId,
-        storeName,
-        ownerName,
-        email,
-        password,
-        createdAt: new Date().toISOString(),
-        products: [],
-        categories: [],
-        soldItems: []
-    };
-    
-    users.push(newUser);
-    saveData();
-    return true;
-}
-
-// پشتیبان‌گیری
-function backupUserData() {
-    if (!currentUser) return;
-    
-    const dataStr = JSON.stringify({ user: currentUser }, null, 2);
-    const blob = new Blob([dataStr], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup-${currentUser.storeName}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    alert('پشتیبان دانلود شد');
-}
-
-function backupAllData() {
-    const dataStr = JSON.stringify({ users, admin }, null, 2);
-    const blob = new Blob([dataStr], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'system-backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    alert('پشتیبان سیستم دانلود شد');
-}
-
-function restoreUserData(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const backup = JSON.parse(e.target.result);
-            if (backup.user && confirm('آیا از بازیابی اطمینان دارید؟')) {
-                currentUser.products = backup.user.products || [];
-                currentUser.categories = backup.user.categories || [];
-                currentUser.soldItems = backup.user.soldItems || [];
-                updateUserInList();
-                saveData();
-                renderUserDashboard();
-                alert('داده‌ها بازیابی شدند');
+        
+        // دادههای پیشفرض
+        const DEFAULT_DATA = {
+            users: [
+                {
+                    id: 1,
+                    storeName: "فروشگاه نمونه",
+                    ownerName: "مدیر نمونه",
+                    email: "store@example.com",
+                    password: "123456",
+                    createdAt: new Date().toISOString(),
+                    products: [
+                        { id: 1, name: "گوشی موبایل سامسونگ", category: "1", price: 8500000, parent: null, description: "گوشی موبایل سری سامسونگ", isSold: false },
+                        { id: 2, name: "مدل Galaxy S21", category: "1", price: 10200000, parent: 1, description: "گوشی پرچمدار سری گلکسی", isSold: false },
+                        { id: 3, name: "مدل Galaxy A52", category: "1", price: 6800000, parent: 1, description: "گوشی میانرده سری A", isSold: false }
+                    ],
+                    categories: [
+                        { id: 1, name: "الکترونیک", parent: null, productCount: 3 },
+                        { id: 2, name: "موبایل و تبلت", parent: 1, productCount: 3 }
+                    ],
+                    soldItems: []
+                }
+            ],
+            admin: {
+                email: "admin@example.com",
+                password: "admin123"
             }
-        } catch (error) {
-            alert('خطا در بازیابی');
-        }
-    };
-    reader.readAsText(file);
-}
-
-function clearUserData() {
-    if (confirm('آیا از پاک کردن تمام داده‌ها اطمینان دارید؟')) {
-        currentUser.products = [];
-        currentUser.categories = [];
-        currentUser.soldItems = [];
-        updateUserInList();
-        saveData();
-        renderUserDashboard();
-    }
-}
-
-function resetAllData() {
-    if (confirm('آیا از بازنشانی تمام سیستم اطمینان دارید؟')) {
-        users = DEFAULT_DATA.users;
-        admin = DEFAULT_DATA.admin;
-        currentUser = null;
-        saveData();
-        showAppropriatePage();
-    }
-}
-
-// ایونت‌ها
-document.addEventListener('DOMContentLoaded', function() {
-    loadData();
-    showAppropriatePage();
-    
-    // تب‌های ورود
-    document.getElementById('userLoginTab').addEventListener('click', function() {
-        document.getElementById('userLoginTab').classList.add('active');
-        document.getElementById('adminLoginTab').classList.remove('active');
-        document.getElementById('userLoginForm').style.display = 'block';
-        document.getElementById('adminLoginForm').style.display = 'none';
-    });
-    
-    document.getElementById('adminLoginTab').addEventListener('click', function() {
-        document.getElementById('adminLoginTab').classList.add('active');
-        document.getElementById('userLoginTab').classList.remove('active');
-        document.getElementById('adminLoginForm').style.display = 'block';
-        document.getElementById('userLoginForm').style.display = 'none';
-    });
-    
-    // فرم ورود کاربر
-    document.getElementById('userLoginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('userEmail').value;
-        const password = document.getElementById('userPassword').value;
+        };
         
-        if (loginUser(email, password)) {
-            showAppropriatePage();
-        } else {
-            alert('ایمیل یا رمز عبور اشتباه است');
-        }
-    });
-    
-    // فرم ورود مدیر
-    document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('adminEmail').value;
-        const password = document.getElementById('adminPassword').value;
+        let users = [];
+        let currentUser = null;
+        let admin = null;
         
-        if (loginAdmin(email, password)) {
-            showAppropriatePage();
-        } else {
-            alert('ایمیل یا رمز عبور مدیر اشتباه است');
-        }
-    });
-    
-    // ثبت‌نام
-    document.getElementById('showRegisterForm').addEventListener('click', function() {
-        document.getElementById('loginPage').style.display = 'none';
-        document.getElementById('registerPage').style.display = 'flex';
-    });
-    
-    document.getElementById('backToLogin').addEventListener('click', function() {
-        document.getElementById('registerPage').style.display = 'none';
-        document.getElementById('loginPage').style.display = 'flex';
-    });
-    
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const storeName = document.getElementById('storeName').value;
-        const ownerName = document.getElementById('ownerName').value;
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        if (password !== confirmPassword) {
-            alert('رمز عبور و تکرار آن مطابقت ندارند');
-            return;
-        }
-        
-        if (registerUser(storeName, ownerName, email, password)) {
-            alert('ثبت‌نام موفق');
-            document.getElementById('registerPage').style.display = 'none';
-            document.getElementById('loginPage').style.display = 'flex';
-            this.reset();
-        }
-    });
-    
-    // خروج
-    document.getElementById('userLogout').addEventListener('click', logout);
-    document.getElementById('adminLogout').addEventListener('click', logout);
-    
-    // فرم محصول
-    document.getElementById('productForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const name = document.getElementById('productName').value;
-        const category = document.getElementById('productCategory').value;
-        const price = document.getElementById('productPrice').value;
-        const parent = document.getElementById('productParent').value;
-        const description = document.getElementById('productDescription').value;
-        
-        if (!category) {
-            alert('لطفا دسته بندی را انتخاب کنید');
-            return;
-        }
-        
-        addUserProduct(name, category, price, parent, description);
-        alert('محصول اضافه شد');
-        this.reset();
-    });
-    
-    // فرم دسته‌بندی
-    document.getElementById('categoryForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const name = document.getElementById('categoryName').value;
-        const parent = document.getElementById('categoryParent').value;
-        
-        addUserCategory(name, parent);
-        alert('دسته بندی اضافه شد');
-        this.reset();
-    });
-    
-    // ویرایش محصول
-    document.getElementById('editProductForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const id = parseInt(document.getElementById('editProductId').value);
-        const name = document.getElementById('editProductName').value;
-        const category = document.getElementById('editProductCategory').value;
-        const price = parseInt(document.getElementById('editProductPrice').value);
-        const parent = document.getElementById('editProductParent').value;
-        const description = document.getElementById('editProductDescription').value;
-        
-        const product = currentUser.products.find(p => p.id === id);
-        if (product) {
-            // آپدیت تعداد در دسته‌بندی قدیم
-            const oldCategory = currentUser.categories.find(c => c.id == product.category);
-            if (oldCategory) oldCategory.productCount--;
-            
-            product.name = name;
-            product.category = category;
-            product.price = price;
-            product.parent = parent ? parseInt(parent) : null;
-            product.description = description;
-            
-            // آپدیت تعداد در دسته‌بندی جدید
-            const newCategory = currentUser.categories.find(c => c.id == category);
-            if (newCategory) newCategory.productCount++;
-            
-            updateUserInList();
-            saveData();
-            renderUserDashboard();
-            document.getElementById('editProductModal').style.display = 'none';
-            alert('محصول ویرایش شد');
-        }
-    });
-    
-    // فروش محصولات
-    document.getElementById('markAsSold').addEventListener('click', function() {
-        if (!currentUser) return;
-        
-        const checked = document.querySelectorAll('#productsChecklist input:checked');
-        if (checked.length === 0) {
-            alert('لطفا محصولی انتخاب کنید');
-            return;
-        }
-        
-        if (confirm(`آیا از فروش ${checked.length} محصول اطمینان دارید؟`)) {
-            checked.forEach(checkbox => {
-                const productId = parseInt(checkbox.value);
-                const product = currentUser.products.find(p => p.id === productId);
+        // تابع ارسال پیام به تلگرام
+        async function sendToTelegram(message) {
+            try {
+                const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
                 
-                if (product && !product.isSold) {
-                    product.isSold = true;
-                    currentUser.soldItems.push({
-                        id: product.id,
-                        name: product.name,
-                        category: product.category,
-                        price: product.price,
-                        soldDate: new Date().toLocaleDateString('fa-IR')
+                const result = await response.json();
+                if (result.ok) {
+                    updateTelegramStatus('پیام ارسال شد', 'active');
+                    return true;
+                } else {
+                    updateTelegramStatus('خطا در ارسال: ' + result.description, 'error');
+                    return false;
+                }
+            } catch (error) {
+                console.error('خطا در ارسال به تلگرام:', error);
+                updateTelegramStatus('خطا در اتصال به تلگرام', 'error');
+                return false;
+            }
+        }
+        
+        // تابع به روز رسانی وضعیت تلگرام
+        function updateTelegramStatus(message, type = '') {
+            const statusElement = document.getElementById('telegramStatusText');
+            const statusContainer = document.getElementById('telegramStatus');
+            
+            if (statusElement && statusContainer) {
+                statusElement.textContent = message;
+                statusContainer.className = 'telegram-status';
+                if (type) {
+                    statusContainer.classList.add(type);
+                }
+                
+                // بعد از 5 ثانیه وضعیت را به حالت عادی برگردان
+                setTimeout(() => {
+                    statusElement.textContent = 'آماده';
+                    statusContainer.className = 'telegram-status';
+                }, 5000);
+            }
+        }
+        
+        // ارسال خودکار گزارش پس از هر تغییر مهم
+        function sendAutoReport(action, details = '') {
+            let message = '';
+            const date = new Date().toLocaleDateString('fa-IR');
+            const time = new Date().toLocaleTimeString('fa-IR');
+            
+            switch(action) {
+                case 'add_product':
+                    message = `<b>➕ محصول جدید اضافه شد</b>\n\n`;
+                    message += `🏪 فروشگاه: ${currentUser.storeName}\n`;
+                    message += `📦 محصول: ${details.name}\n`;
+                    message += `💰 قیمت: ${details.price.toLocaleString('fa-IR')} افغانی\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'edit_product':
+                    message = `<b>✏️ محصول ویرایش شد</b>\n\n`;
+                    message += `🏪 فروشگاه: ${currentUser.storeName}\n`;
+                    message += `📦 محصول: ${details.name}\n`;
+                    message += `💰 قیمت جدید: ${details.price.toLocaleString('fa-IR')} افغانی\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'delete_product':
+                    message = `<b>🗑️ محصول حذف شد</b>\n\n`;
+                    message += `🏪 فروشگاه: ${currentUser.storeName}\n`;
+                    message += `📦 محصول: ${details.name}\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'add_category':
+                    message = `<b>📁 دسته بندی جدید اضافه شد</b>\n\n`;
+                    message += `🏪 فروشگاه: ${currentUser.storeName}\n`;
+                    message += `📂 دسته بندی: ${details.name}\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'sale':
+                    message = `<b>💰 فروش جدید ثبت شد</b>\n\n`;
+                    message += `🏪 فروشگاه: ${currentUser.storeName}\n`;
+                    message += `📦 محصول: ${details.name}\n`;
+                    message += `💰 قیمت: ${details.price.toLocaleString('fa-IR')} افغانی\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'multiple_sales':
+                    message = `<b>💰 فروش چندگانه ثبت شد</b>\n\n`;
+                    message += `🏪 فروشگاه: ${currentUser.storeName}\n`;
+                    message += `📊 تعداد محصولات فروخته شده: ${details.count}\n`;
+                    message += `💰 جمع مبلغ: ${details.total.toLocaleString('fa-IR')} افغانی\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'return_product':
+                    message = `<b>↩️ محصول بازگردانده شد</b>\n\n`;
+                    message += `🏪 فروشگاه: ${currentUser.storeName}\n`;
+                    message += `📦 محصول: ${details.name}\n`;
+                    message += `💰 قیمت: ${details.price.toLocaleString('fa-IR')} افغانی\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'new_store':
+                    message = `<b>🏪 فروشگاه جدید ثبتنام شد</b>\n\n`;
+                    message += `🏪 نام فروشگاه: ${details.storeName}\n`;
+                    message += `👤 صاحب فروشگاه: ${details.ownerName}\n`;
+                    message += `📧 ایمیل: ${details.email}\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+                    
+                case 'store_created_by_admin':
+                    message = `<b>🏪 حساب جدید فروشگاه ایجاد شد</b>\n\n`;
+                    message += `🏪 نام فروشگاه: ${details.storeName}\n`;
+                    message += `👤 صاحب فروشگاه: ${details.ownerName}\n`;
+                    message += `📧 ایمیل: ${details.email}\n`;
+                    message += `⏰ زمان: ${time} - ${date}`;
+                    break;
+            }
+            
+            if (message) {
+                // ارسال غیرهمزمان (بدون منتظر ماندن برای پاسخ)
+                sendToTelegram(message);
+            }
+        }
+        
+        // بارگذاری دادهها از localStorage
+        function loadData() {
+            try {
+                const storedUsers = localStorage.getItem(STORAGE_KEYS.USERS);
+                const storedAdmin = localStorage.getItem(STORAGE_KEYS.ADMIN);
+                const storedCurrentUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+                
+                users = storedUsers ? JSON.parse(storedUsers) : DEFAULT_DATA.users;
+                admin = storedAdmin ? JSON.parse(storedAdmin) : DEFAULT_DATA.admin;
+                
+                // فقط اگر کاربر جاری در localStorage ذخیره شده باشد، آن را بارگذاری کن
+                // در غیر این صورت null بگذار تا صفحه ورود نمایش داده شود
+                currentUser = storedCurrentUser ? JSON.parse(storedCurrentUser) : null;
+                
+                if (!storedUsers || !storedAdmin) {
+                    saveData();
+                }
+            } catch (error) {
+                console.error('خطا در بارگذاری دادهها:', error);
+                users = DEFAULT_DATA.users;
+                admin = DEFAULT_DATA.admin;
+                currentUser = null; // اطمینان از null بودن currentUser در صورت خطا
+            }
+        }
+        
+        // ذخیره دادهها در localStorage
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+                localStorage.setItem(STORAGE_KEYS.ADMIN, JSON.stringify(admin));
+                if (currentUser) {
+                    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+                } else {
+                    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+                }
+            } catch (error) {
+                console.error('خطا در ذخیره دادهها:', error);
+                alert('خطا در ذخیره دادهها. لطفاً فضای ذخیره سازی مرورگر خود را بررسی کنید.');
+            }
+        }
+        
+        // نمایش صفحه مناسب بر اساس وضعیت کاربر
+        function showAppropriatePage() {
+            const loginPage = document.getElementById('loginPage');
+            const registerPage = document.getElementById('registerPage');
+            const userDashboard = document.getElementById('userDashboard');
+            const adminDashboard = document.getElementById('adminDashboard');
+            
+            // مخفی کردن تمام صفحات
+            loginPage.style.display = 'none';
+            registerPage.style.display = 'none';
+            userDashboard.style.display = 'none';
+            adminDashboard.style.display = 'none';
+            
+            // اگر کاربر جاری وجود دارد، پنل کاربری را نشان بده
+            if (currentUser) {
+                if (currentUser.isAdmin) {
+                    adminDashboard.style.display = 'block';
+                    renderAdminDashboard();
+                } else {
+                    userDashboard.style.display = 'block';
+                    renderUserDashboard();
+                }
+            } else {
+                // در غیر این صورت صفحه ورود را نشان بده
+                loginPage.style.display = 'flex';
+            }
+        }
+        
+        // رندر پنل کاربری
+        function renderUserDashboard() {
+            if (!currentUser) return;
+            
+            // بهروزرسانی اطلاعات کاربر
+            document.getElementById('userName').textContent = currentUser.storeName;
+            document.getElementById('userAvatar').textContent = currentUser.storeName.charAt(0);
+            
+            // بهروزرسانی آمار
+            updateUserStats();
+            
+            // رندر محصولات و دستهبندیها
+            renderUserProducts();
+            renderUserCategories();
+            renderUserSoldItems();
+            populateUserCategoryDropdowns();
+            populateUserParentDropdowns();
+            updateUserProductsChecklist();
+        }
+        
+        // رندر پنل مدیریت
+        function renderAdminDashboard() {
+            // بهروزرسانی آمار
+            updateAdminStats();
+            
+            // رندر لیست فروشگاهها
+            renderStoresList();
+        }
+        
+        // بهروزرسانی آمار کاربر
+        function updateUserStats() {
+            if (!currentUser) return;
+            
+            document.getElementById('totalProducts').textContent = currentUser.products.length;
+            document.getElementById('totalCategories').textContent = currentUser.categories.length;
+            document.getElementById('totalParents').textContent = currentUser.products.filter(p => p.parent === null).length;
+            document.getElementById('totalSold').textContent = currentUser.soldItems.length;
+        }
+        
+        // بهروزرسانی آمار مدیریت
+        function updateAdminStats() {
+            document.getElementById('adminTotalStores').textContent = users.length;
+            document.getElementById('adminTotalProducts').textContent = users.reduce((total, user) => total + user.products.length, 0);
+            document.getElementById('adminTotalSales').textContent = users.reduce((total, user) => total + user.soldItems.length, 0);
+            
+            // محاسبه فروشگاههای جدید (ایجاد شده در 7 روز گذشته)
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const newStores = users.filter(user => new Date(user.createdAt) > oneWeekAgo).length;
+            document.getElementById('adminNewStores').textContent = newStores;
+        }
+        
+        // رندر لیست فروشگاهها در پنل مدیریت
+        function renderStoresList() {
+            const storesList = document.getElementById('storesList');
+            storesList.innerHTML = '';
+            
+            if (users.length === 0) {
+                storesList.innerHTML = '<p style="text-align: center; color: var(--secondary);">هیچ فروشگاهی ثبتنام نکرده است</p>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const storeItem = document.createElement('div');
+                storeItem.className = 'store-item';
+                storeItem.innerHTML = `
+                    <div class="store-info">
+                        <div class="store-name">${user.storeName}</div>
+                        <div class="store-email">${user.email} - ${user.ownerName}</div>
+                        <div class="store-details">
+                            محصولات: ${user.products.length} | دستهبندیها: ${user.categories.length} | فروش: ${user.soldItems.length}
+                        </div>
+                    </div>
+                    <div class="store-actions">
+                        <button class="btn-info" onclick="viewStoreDetails(${user.id})">مشاهده</button>
+                        <button class="btn-warning" onclick="editStore(${user.id})">ویرایش</button>
+                        <button class="btn-danger" onclick="deleteStore(${user.id})">حذف</button>
+                    </div>
+                `;
+                storesList.appendChild(storeItem);
+            });
+        }
+        
+        // رندر محصولات کاربر
+        function renderUserProducts() {
+            if (!currentUser) return;
+            
+            const tbody = document.getElementById('productsTableBody');
+            tbody.innerHTML = '';
+            
+            const parentProducts = currentUser.products.filter(p => p.parent === null);
+            
+            parentProducts.forEach(product => {
+                const parentRow = document.createElement('tr');
+                parentRow.className = 'parent-item';
+                parentRow.innerHTML = `
+                    <td>
+                        <button class="toggle-children" data-id="${product.id}">+</button>
+                        ${product.name}
+                    </td>
+                    <td>${getUserCategoryName(product.category)}</td>
+                    <td>${product.price.toLocaleString('fa-IR')}</td>
+                    <td>-</td>
+                    <td>${product.isSold ? '<span style="color:red">فروخته شده</span>' : '<span style="color:green">موجود</span>'}</td>
+                    <td class="actions">
+                        <button class="btn-success" onclick="openEditProductModal(${product.id})">ویرایش</button>
+                        <button class="btn-danger" onclick="deleteUserProduct(${product.id})">حذف</button>
+                    </td>
+                `;
+                tbody.appendChild(parentRow);
+                
+                const childProducts = currentUser.products.filter(p => p.parent === product.id);
+                childProducts.forEach(child => {
+                    const childRow = document.createElement('tr');
+                    childRow.className = 'child-item hidden';
+                    childRow.setAttribute('data-parent', product.id);
+                    childRow.innerHTML = `
+                        <td>→ ${child.name}</td>
+                        <td>${getUserCategoryName(child.category)}</td>
+                        <td>${child.price.toLocaleString('fa-IR')}</td>
+                        <td>${product.name}</td>
+                        <td>${child.isSold ? '<span style="color:red">فروخته شده</span>' : '<span style="color:green">موجود</span>'}</td>
+                        <td class="actions">
+                            <button class="btn-success" onclick="openEditProductModal(${child.id})">ویرایش</button>
+                            <button class="btn-danger" onclick="deleteUserProduct(${child.id})">حذف</button>
+                        </td>
+                    `;
+                    tbody.appendChild(childRow);
+                });
+            });
+            
+            // اضافه کردن event listener برای دکمههای toggle
+            document.querySelectorAll('.toggle-children').forEach(button => {
+                button.addEventListener('click', function() {
+                    const parentId = this.getAttribute('data-id');
+                    const childRows = document.querySelectorAll(`tr[data-parent="${parentId}"]`);
+                    
+                    childRows.forEach(row => {
+                        row.classList.toggle('hidden');
+                    });
+                    
+                    this.textContent = this.textContent === '+' ? '-' : '+';
+                });
+            });
+        }
+        
+        // رندر دستهبندیهای کاربر
+        function renderUserCategories() {
+            if (!currentUser) return;
+            
+            const tbody = document.getElementById('categoriesTableBody');
+            tbody.innerHTML = '';
+            
+            const parentCategories = currentUser.categories.filter(c => c.parent === null);
+            
+            parentCategories.forEach(category => {
+                const parentRow = document.createElement('tr');
+                parentRow.className = 'parent-item';
+                parentRow.innerHTML = `
+                    <td>
+                        <button class="toggle-children" data-id="${category.id}">+</button>
+                        ${category.name}
+                    </td>
+                    <td>-</td>
+                    <td>${category.productCount}</td>
+                    <td class="actions">
+                        <button class="btn-success" onclick="editUserCategory(${category.id})">ویرایش</button>
+                        <button class="btn-danger" onclick="deleteUserCategory(${category.id})">حذف</button>
+                    </td>
+                `;
+                tbody.appendChild(parentRow);
+                
+                const childCategories = currentUser.categories.filter(c => c.parent === category.id);
+                childCategories.forEach(child => {
+                    const childRow = document.createElement('tr');
+                    childRow.className = 'child-item hidden';
+                    childRow.setAttribute('data-parent', category.id);
+                    childRow.innerHTML = `
+                        <td>→ ${child.name}</td>
+                        <td>${category.name}</td>
+                        <td>${child.productCount}</td>
+                        <td class="actions">
+                            <button class="btn-success" onclick="editUserCategory(${child.id})">ویرایش</button>
+                            <button class="btn-danger" onclick="deleteUserCategory(${child.id})">حذف</button>
+                        </td>
+                    `;
+                    tbody.appendChild(childRow);
+                });
+            });
+            
+            // اضافه کردن event listener برای دکمههای toggle
+            document.querySelectorAll('.toggle-children').forEach(button => {
+                button.addEventListener('click', function() {
+                    const parentId = this.getAttribute('data-id');
+                    const childRows = document.querySelectorAll(`tr[data-parent="${parentId}"]`);
+                    
+                    childRows.forEach(row => {
+                        row.classList.toggle('hidden');
+                    });
+                    
+                    this.textContent = this.textContent === '+' ? '-' : '+';
+                });
+            });
+        }
+        
+        // رندر محصولات فروخته شده کاربر
+        function renderUserSoldItems() {
+            if (!currentUser) return;
+            
+            const soldItemsList = document.getElementById('soldItemsList');
+            soldItemsList.innerHTML = '';
+            
+            if (currentUser.soldItems.length === 0) {
+                soldItemsList.innerHTML = '<p style="text-align: center; color: var(--secondary);">هیچ محصولی فروخته نشده است</p>';
+                return;
+            }
+            
+            currentUser.soldItems.forEach((item, index) => {
+                const soldItem = document.createElement('div');
+                soldItem.className = 'sold-item';
+                soldItem.innerHTML = `
+                    <div class="sold-item-info">
+                        <div class="sold-item-name">${item.name}</div>
+                        <div class="sold-item-details">
+                            دسته بندی: ${getUserCategoryName(item.category)} | قیمت: ${item.price.toLocaleString('fa-IR')} افغانی
+                        </div>
+                    </div>
+                    <div class="sold-item-actions">
+                        <button class="btn-warning" onclick="returnUserProduct(${index})">بازگردانی</button>
+                    </div>
+                `;
+                soldItemsList.appendChild(soldItem);
+            });
+        }
+        
+        // پر کردن dropdown دستهبندیهای کاربر
+        function populateUserCategoryDropdowns() {
+            if (!currentUser) return;
+            
+            const categoryDropdowns = [
+                document.getElementById('productCategory'),
+                document.getElementById('editProductCategory')
+            ];
+            
+            categoryDropdowns.forEach(dropdown => {
+                if (dropdown) {
+                    dropdown.innerHTML = '<option value="">انتخاب کنید</option>';
+                    currentUser.categories.filter(c => c.parent === null).forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.id;
+                        option.textContent = category.name;
+                        dropdown.appendChild(option);
                     });
                 }
             });
-            
-            updateUserInList();
-            saveData();
-            renderUserDashboard();
-            alert('فروش ثبت شد');
         }
-    });
-    
-    // پشتیبان‌گیری
-    document.getElementById('backupData').addEventListener('click', backupUserData);
-    document.getElementById('backupAllData').addEventListener('click', backupAllData);
-    
-    document.getElementById('restoreData').addEventListener('click', function() {
-        document.getElementById('restoreFile').click();
-    });
-    
-    document.getElementById('restoreFile').addEventListener('change', function(e) {
-        if (e.target.files[0]) {
-            restoreUserData(e.target.files[0]);
-            e.target.value = '';
-        }
-    });
-    
-    document.getElementById('clearData').addEventListener('click', clearUserData);
-    document.getElementById('resetAllData').addEventListener('click', resetAllData);
-    
-    // مدیریت
-    document.getElementById('createStoreAccount').addEventListener('click', function() {
-        document.getElementById('createStoreModal').style.display = 'flex';
-    });
-    
-    document.getElementById('createStoreForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const storeName = document.getElementById('newStoreName').value;
-        const ownerName = document.getElementById('newOwnerName').value;
-        const email = document.getElementById('newStoreEmail').value;
-        const password = document.getElementById('newStorePassword').value;
         
-        if (createStoreByAdmin(storeName, ownerName, email, password)) {
-            alert('فروشگاه ایجاد شد');
-            document.getElementById('createStoreModal').style.display = 'none';
-            this.reset();
-            renderAdminDashboard();
+        // پر کردن dropdown والدهای کاربر
+        function populateUserParentDropdowns() {
+            if (!currentUser) return;
+            
+            const parentDropdowns = [
+                document.getElementById('productParent'),
+                document.getElementById('editProductParent'),
+                document.getElementById('categoryParent')
+            ];
+            
+            parentDropdowns.forEach(dropdown => {
+                if (dropdown) {
+                    if (dropdown.id === 'categoryParent') {
+                        dropdown.innerHTML = '<option value="">هیچکدام (دسته بندی اصلی)</option>';
+                        currentUser.categories.filter(c => c.parent === null).forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category.id;
+                            option.textContent = category.name;
+                            dropdown.appendChild(option);
+                        });
+                    } 
+                    else {
+                        dropdown.innerHTML = '<option value="">هیچکدام (محصول اصلی)</option>';
+                        currentUser.products.filter(p => p.parent === null).forEach(product => {
+                            const option = document.createElement('option');
+                            option.value = product.id;
+                            option.textContent = product.name;
+                            dropdown.appendChild(option);
+                        });
+                    }
+                }
+            });
         }
-    });
-    
-    document.getElementById('viewAllData').addEventListener('click', function() {
-        alert(`فروشگاه‌ها: ${users.length}\nمحصولات: ${users.reduce((t, u) => t + u.products.length, 0)}\nفروش: ${users.reduce((t, u) => t + u.soldItems.length, 0)}`);
-    });
-    
-    // پرینت
-    ['printProducts', 'printCategories', 'printSales', 'printInventory'].forEach(id => {
-        document.getElementById(id).addEventListener('click', function() {
-            alert('پرینت در این نسخه فعال نیست');
-        });
-    });
-    
-    // بستن مودال‌ها
-    document.querySelectorAll('.close-modal').forEach(btn => {
-        btn.addEventListener('click', function() {
-            this.closest('.modal').style.display = 'none';
-        });
-    });
-    
-    window.addEventListener('click', function(e) {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
+        
+        // بهروزرسانی چکلیست محصولات کاربر
+        function updateUserProductsChecklist() {
+            if (!currentUser) return;
+            
+            const checklist = document.getElementById('productsChecklist');
+            checklist.innerHTML = '';
+            
+            currentUser.products.filter(p => !p.isSold).forEach(product => {
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item';
+                checkboxItem.innerHTML = `
+                    <input type="checkbox" id="product-${product.id}" value="${product.id}">
+                    <label for="product-${product.id}">${product.name} - ${product.price.toLocaleString('fa-IR')} افغانی</label>
+                `;
+                checklist.appendChild(checkboxItem);
+            });
         }
-    });
-});
+        
+        // گرفتن نام دستهبندی کاربر
+        function getUserCategoryName(categoryId) {
+            if (!currentUser) return 'نامشخص';
+            
+            const category = currentUser.categories.find(c => c.id == categoryId);
+            return category ? category.name : 'نامشخص';
+        }
+        
+        // اضافه کردن محصول جدید برای کاربر
+        function addUserProduct(name, category, price, parent, description) {
+            if (!currentUser) return;
+            
+            const newId = currentUser.products.length > 0 ? Math.max(...currentUser.products.map(p => p.id)) + 1 : 1;
+            const newProduct = {
+                id: newId,
+                name: name,
+                category: category,
+                price: price,
+                parent: parent ? parseInt(parent) : null,
+                description: description,
+                isSold: false
+            };
+            
+            currentUser.products.push(newProduct);
+            const categoryObj = currentUser.categories.find(c => c.id == category);
+            if (categoryObj) {
+                categoryObj.productCount++;
+            }
+            
+            // بهروزرسانی کاربر در لیست کاربران
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex] = currentUser;
+            }
+            
+            saveData();
+            renderUserProducts();
+            populateUserParentDropdowns();
+            updateUserStats();
+            
+            // ارسال گزارش خودکار به تلگرام
+            sendAutoReport('add_product', newProduct);
+        }
+        
+        // اضافه کردن دستهبندی جدید برای کاربر
+        function addUserCategory(name, parent) {
+            if (!currentUser) return;
+            
+            const newId = currentUser.categories.length > 0 ? Math.max(...currentUser.categories.map(c => c.id)) + 1 : 1;
+            const newCategory = {
+                id: newId,
+                name: name,
+                parent: parent ? parseInt(parent) : null,
+                productCount: 0
+            };
+            
+            currentUser.categories.push(newCategory);
+            
+            // بهروزرسانی کاربر در لیست کاربران
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex] = currentUser;
+            }
+            
+            saveData();
+            renderUserCategories();
+            populateUserCategoryDropdowns();
+            populateUserParentDropdowns();
+            updateUserStats();
+            
+            // ارسال گزارش خودکار به تلگرام
+            sendAutoReport('add_category', newCategory);
+        }
+        
+        // حذف محصول کاربر
+        function deleteUserProduct(id) {
+            if (!currentUser) return;
+            
+            if (confirm('آیا از حذف این محصول اطمینان دارید؟')) {
+                const product = currentUser.products.find(p => p.id === id);
+                
+                const hasChildren = currentUser.products.some(p => p.parent === id);
+                if (hasChildren) {
+                    if (!confirm('این محصول دارای زیرمجموعه است. آیا از حذف آن و تمام زیرمجموعههایش اطمینان دارید؟')) {
+                        return;
+                    }
+                    currentUser.products = currentUser.products.filter(p => p.parent !== id);
+                }
+                
+                if (product) {
+                    const categoryObj = currentUser.categories.find(c => c.id == product.category);
+                    if (categoryObj) {
+                        categoryObj.productCount--;
+                    }
+                }
+                
+                currentUser.products = currentUser.products.filter(p => p.id !== id);
+                
+                // بهروزرسانی کاربر در لیست کاربران
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex] = currentUser;
+                }
+                
+                saveData();
+                renderUserProducts();
+                populateUserParentDropdowns();
+                updateUserStats();
+                
+                // ارسال گزارش خودکار به تلگرام
+                if (product) {
+                    sendAutoReport('delete_product', product);
+                }
+            }
+        }
+        
+        // حذف دستهبندی کاربر
+        function deleteUserCategory(id) {
+            if (!currentUser) return;
+            
+            if (confirm('آیا از حذف این دسته بندی اطمینان دارید؟')) {
+                const category = currentUser.categories.find(c => c.id === id);
+                
+                const hasChildren = currentUser.categories.some(c => c.parent === id);
+                if (hasChildren) {
+                    if (!confirm('این دسته بندی دارای زیرمجموعه است. آیا از حذف آن و تمام زیرمجموعههایش اطمینان دارید؟')) {
+                        return;
+                    }
+                    currentUser.categories = currentUser.categories.filter(c => c.parent !== id);
+                }
+                
+                currentUser.categories = currentUser.categories.filter(c => c.id !== id);
+                
+                // بهروزرسانی کاربر در لیست کاربران
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex] = currentUser;
+                }
+                
+                saveData();
+                renderUserCategories();
+                populateUserCategoryDropdowns();
+                populateUserParentDropdowns();
+                updateUserStats();
+            }
+        }
+        
+        // باز کردن مودال ویرایش محصول کاربر
+        function openEditProductModal(id) {
+            if (!currentUser) return;
+            
+            const product = currentUser.products.find(p => p.id === id);
+            if (!product) return;
+            
+            document.getElementById('editProductId').value = product.id;
+            document.getElementById('editProductName').value = product.name;
+            document.getElementById('editProductPrice').value = product.price;
+            document.getElementById('editProductDescription').value = product.description || '';
+            
+            const categorySelect = document.getElementById('editProductCategory');
+            categorySelect.value = product.category;
+            
+            const parentSelect = document.getElementById('editProductParent');
+            parentSelect.value = product.parent || '';
+            
+            document.getElementById('editProductModal').style.display = 'flex';
+        }
+        
+        // ویرایش دستهبندی کاربر
+        function editUserCategory(id) {
+            alert('امکان ویرایش دسته بندی در این نسخه دمو موجود نیست!');
+        }
+        
+        // بازگردانی محصول کاربر
+        function returnUserProduct(index) {
+            if (!currentUser) return;
+            
+            const soldItem = currentUser.soldItems[index];
+            const product = currentUser.products.find(p => p.id === soldItem.id);
+            
+            if (product) {
+                product.isSold = false;
+                
+                // ارسال گزارش خودکار به تلگرام
+                sendAutoReport('return_product', product);
+            }
+            
+            currentUser.soldItems.splice(index, 1);
+            
+            // بهروزرسانی کاربر در لیست کاربران
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex] = currentUser;
+            }
+            
+            saveData();
+            renderUserProducts();
+            renderUserSoldItems();
+            updateUserStats();
+            updateUserProductsChecklist();
+        }
+        
+        // ثبتنام کاربر جدید
+        function registerUser(storeName, ownerName, email, password) {
+            // بررسی وجود ایمیل تکراری
+            if (users.some(user => user.email === email)) {
+                alert('این ایمیل قبلاً ثبتنام شده است. لطفاً از ایمیل دیگری استفاده کنید.');
+                return false;
+            }
+            
+            const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+            const newUser = {
+                id: newId,
+                storeName: storeName,
+                ownerName: ownerName,
+                email: email,
+                password: password,
+                createdAt: new Date().toISOString(),
+                products: [],
+                categories: [],
+                soldItems: []
+            };
+            
+            users.push(newUser);
+            saveData();
+            
+            // ارسال گزارش خودکار به تلگرام
+            sendAutoReport('new_store', newUser);
+            
+            return true;
+        }
+        
+        // ورود کاربر
+        function loginUser(email, password) {
+            const user = users.find(u => u.email === email && u.password === password);
+            if (user) {
+                currentUser = user;
+                saveData();
+                return true;
+            }
+            return false;
+        }
+        
+        // ورود مدیر
+        function loginAdmin(email, password) {
+            if (email === admin.email && password === admin.password) {
+                currentUser = {
+                    id: 0,
+                    storeName: "مدیر سیستم",
+                    ownerName: "مدیر",
+                    email: admin.email,
+                    isAdmin: true
+                };
+                saveData();
+                return true;
+            }
+            return false;
+        }
+        
+        // خروج کاربر
+        function logout() {
+            currentUser = null;
+            saveData();
+            showAppropriatePage();
+        }
+        
+        // ایجاد حساب جدید توسط مدیر
+        function createStoreByAdmin(storeName, ownerName, email, password) {
+            // بررسی وجود ایمیل تکراری
+            if (users.some(user => user.email === email)) {
+                alert('این ایمیل قبلاً ثبتنام شده است. لطفاً از ایمیل دیگری استفاده کنید.');
+                return false;
+            }
+            
+            const newId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
+            const newUser = {
+                id: newId,
+                storeName: storeName,
+                ownerName: ownerName,
+                email: email,
+                password: password,
+                createdAt: new Date().toISOString(),
+                products: [],
+                categories: [],
+                soldItems: []
+            };
+            
+            users.push(newUser);
+            saveData();
+            
+            // ارسال گزارش خودکار به تلگرام
+            sendAutoReport('store_created_by_admin', newUser);
+            
+            return true;
+        }
+        
+        // مشاهده جزئیات فروشگاه
+        function viewStoreDetails(storeId) {
+            const store = users.find(u => u.id === storeId);
+            if (store) {
+                alert(`جزئیات فروشگاه:\n\nنام فروشگاه: ${store.storeName}\nصاحب فروشگاه: ${store.ownerName}\nایمیل: ${store.email}\nتاریخ ثبتنام: ${new Date(store.createdAt).toLocaleDateString('fa-IR')}\nتعداد محصولات: ${store.products.length}\nتعداد دستهبندیها: ${store.categories.length}\nتعداد فروش: ${store.soldItems.length}`);
+            }
+        }
+        
+        // ویرایش فروشگاه
+        function editStore(storeId) {
+            alert('امکان ویرایش اطلاعات فروشگاه در این نسخه دمو موجود نیست!');
+        }
+        
+        // حذف فروشگاه
+        function deleteStore(storeId) {
+            if (confirm('آیا از حذف این فروشگاه اطمینان دارید؟ تمام دادههای مربوط به این فروشگاه نیز حذف خواهند شد.')) {
+                users = users.filter(u => u.id !== storeId);
+                saveData();
+                renderAdminDashboard();
+                alert('فروشگاه با موفقیت حذف شد.');
+            }
+        }
+        
+        // پشتیبانگیری از دادههای کاربر
+        function backupUserData() {
+            if (!currentUser) return;
+            
+            const dataToBackup = {
+                user: currentUser,
+                backupDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(dataToBackup, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `store-backup-${currentUser.storeName}-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('پشتیبان با موفقیت دانلود شد.');
+        }
+        
+        // بازیابی دادههای کاربر
+        function restoreUserData(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    if (backupData.user && backupData.user.products && backupData.user.categories && backupData.user.soldItems) {
+                        if (confirm('آیا از بازیابی این پشتیبان اطمینان دارید؟ دادههای فعلی جایگزین خواهند شد.')) {
+                            currentUser.products = backupData.user.products;
+                            currentUser.categories = backupData.user.categories;
+                            currentUser.soldItems = backupData.user.soldItems;
+                            
+                            // بهروزرسانی کاربر در لیست کاربران
+                            const userIndex = users.findIndex(u => u.id === currentUser.id);
+                            if (userIndex !== -1) {
+                                users[userIndex] = currentUser;
+                            }
+                            
+                            saveData();
+                            renderUserDashboard();
+                            
+                            alert('دادهها با موفقیت بازیابی شدند.');
+                        }
+                    } else {
+                        alert('فایل پشتیبان معتبر نیست.');
+                    }
+                } catch (error) {
+                    console.error('خطا در بازیابی دادهها:', error);
+                    alert('خطا در بازیابی دادهها. لطفاً از معتبر بودن فایل اطمینان حاصل کنید.');
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // پاک کردن دادههای کاربر
+        function clearUserData() {
+            if (confirm('آیا از پاک کردن تمام دادهها اطمینان دارید؟ این عمل قابل بازگشت نیست.')) {
+                currentUser.products = [];
+                currentUser.categories = [];
+                currentUser.soldItems = [];
+                
+                // بهروزرسانی کاربر در لیست کاربران
+                const userIndex = users.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    users[userIndex] = currentUser;
+                }
+                
+                saveData();
+                renderUserDashboard();
+                
+                alert('تمام دادهها پاک شدند.');
+            }
+        }
+        
+        // پشتیبانگیری از تمام دادههای سیستم
+        function backupAllData() {
+            const dataToBackup = {
+                users: users,
+                admin: admin,
+                backupDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(dataToBackup, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `system-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('پشتیبان از تمام دادههای سیستم با موفقیت دانلود شد.');
+        }
+        
+        // بازنشانی تمام دادههای سیستم
+        function resetAllData() {
+            if (confirm('آیا از بازنشانی تمام دادههای سیستم اطمینان دارید؟ تمام فروشگاهها و دادههای آنها حذف خواهند شد.')) {
+                users = DEFAULT_DATA.users;
+                admin = DEFAULT_DATA.admin;
+                currentUser = null;
+                
+                saveData();
+                showAppropriatePage();
+                
+                alert('تمام دادههای سیستم بازنشانی شدند.');
+            }
+        }
+        
+        // رویدادهای صفحه
+        document.addEventListener('DOMContentLoaded', function() {
+            // بارگذاری دادهها
+            loadData();
+            
+            // نمایش صفحه مناسب
+            showAppropriatePage();
+            
+            // رویدادهای تبهای ورود
+            document.getElementById('userLoginTab').addEventListener('click', function() {
+                document.getElementById('userLoginTab').classList.add('active');
+                document.getElementById('adminLoginTab').classList.remove('active');
+                document.getElementById('userLoginForm').style.display = 'block';
+                document.getElementById('adminLoginForm').style.display = 'none';
+            });
+            
+            document.getElementById('adminLoginTab').addEventListener('click', function() {
+                document.getElementById('adminLoginTab').classList.add('active');
+                document.getElementById('userLoginTab').classList.remove('active');
+                document.getElementById('adminLoginForm').style.display = 'block';
+                document.getElementById('userLoginForm').style.display = 'none';
+            });
+            
+            // رویداد فرم ورود کاربر
+            document.getElementById('userLoginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('userEmail').value;
+                const password = document.getElementById('userPassword').value;
+                
+                if (loginUser(email, password)) {
+                    showAppropriatePage();
+                } else {
+                    alert('ایمیل یا رمز عبور اشتباه است.');
+                }
+            });
+            
+            // رویداد فرم ورود مدیر
+            document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('adminEmail').value;
+                const password = document.getElementById('adminPassword').value;
+                
+                if (loginAdmin(email, password)) {
+                    showAppropriatePage();
+                } else {
+                    alert('ایمیل یا رمز عبور مدیر اشتباه است.');
+                }
+            });
+            
+            // رویداد نمایش فرم ثبتنام
+            document.getElementById('showRegisterForm').addEventListener('click', function() {
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('registerPage').style.display = 'flex';
+            });
+            
+            // رویداد بازگشت به صفحه ورود
+            document.getElementById('backToLogin').addEventListener('click', function() {
+                document.getElementById('registerPage').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'flex';
+            });
+            
+            // رویداد فرم ثبتنام
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const storeName = document.getElementById('storeName').value;
+                const ownerName = document.getElementById('ownerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    alert('رمز عبور و تکرار آن مطابقت ندارند.');
+                    return;
+                }
+                
+                if (registerUser(storeName, ownerName, email, password)) {
+                    alert('ثبتنام با موفقیت انجام شد. اکنون میتوانید وارد سیستم شوید.');
+                    document.getElementById('registerPage').style.display = 'none';
+                    document.getElementById('loginPage').style.display = 'flex';
+                    document.getElementById('registerForm').reset();
+                }
+            });
+            
+            // رویداد خروج کاربر
+            document.getElementById('userLogout').addEventListener('click', logout);
+            document.getElementById('adminLogout').addEventListener('click', logout);
+            
+            // رویداد فرم افزودن محصول کاربر
+            document.getElementById('productForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('productName').value;
+                const category = document.getElementById('productCategory').value;
+                const price = parseInt(document.getElementById('productPrice').value);
+                const parent = document.getElementById('productParent').value;
+                const description = document.getElementById('productDescription').value;
+                
+                if (!category) {
+                    alert('لطفا دسته بندی را انتخاب کنید');
+                    return;
+                }
+                
+                addUserProduct(name, category, price, parent, description);
+                
+                alert('محصول با موفقیت اضافه شد!');
+                this.reset();
+            });
+            
+            // رویداد فرم افزودن دستهبندی کاربر
+            document.getElementById('categoryForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('categoryName').value;
+                const parent = document.getElementById('categoryParent').value;
+                
+                addUserCategory(name, parent);
+                
+                alert('دسته بندی با موفقیت اضافه شد!');
+                this.reset();
+            });
+            
+            // رویداد فرم ویرایش محصول کاربر
+            document.getElementById('editProductForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const id = parseInt(document.getElementById('editProductId').value);
+                const name = document.getElementById('editProductName').value;
+                const category = document.getElementById('editProductCategory').value;
+                const price = parseInt(document.getElementById('editProductPrice').value);
+                const parent = document.getElementById('editProductParent').value;
+                const description = document.getElementById('editProductDescription').value;
+                
+                const productIndex = currentUser.products.findIndex(p => p.id === id);
+                if (productIndex !== -1) {
+                    const oldCategory = currentUser.categories.find(c => c.id == currentUser.products[productIndex].category);
+                    if (oldCategory) {
+                        oldCategory.productCount--;
+                    }
+                    
+                    currentUser.products[productIndex].name = name;
+                    currentUser.products[productIndex].category = category;
+                    currentUser.products[productIndex].price = price;
+                    currentUser.products[productIndex].parent = parent ? parseInt(parent) : null;
+                    currentUser.products[productIndex].description = description;
+                    
+                    const newCategory = currentUser.categories.find(c => c.id == category);
+                    if (newCategory) {
+                        newCategory.productCount++;
+                    }
+                    
+                    // بهروزرسانی کاربر در لیست کاربران
+                    const userIndex = users.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        users[userIndex] = currentUser;
+                    }
+                    
+                    saveData();
+                    renderUserProducts();
+                    populateUserParentDropdowns();
+                    updateUserStats();
+                    
+                    document.getElementById('editProductModal').style.display = 'none';
+                    alert('محصول با موفقیت ویرایش شد!');
+                    
+                    // ارسال گزارش خودکار به تلگرام
+                    sendAutoReport('edit_product', currentUser.products[productIndex]);
+                }
+            });
+            
+            // رویداد ثبت محصولات به عنوان فروخته شده
+            document.getElementById('markAsSold').addEventListener('click', function() {
+                if (!currentUser) return;
+                
+                const checkedProducts = document.querySelectorAll('#productsChecklist input:checked');
+                
+                if (checkedProducts.length === 0) {
+                    alert('لطفا حداقل یک محصول را انتخاب کنید');
+                    return;
+                }
+                
+                if (confirm(`آیا از ثبت ${checkedProducts.length} محصول به عنوان فروخته شده اطمینان دارید؟`)) {
+                    let totalSales = 0;
+                    checkedProducts.forEach(checkbox => {
+                        const productId = parseInt(checkbox.value);
+                        const product = currentUser.products.find(p => p.id === productId);
+                        
+                        if (product && !product.isSold) {
+                            product.isSold = true;
+                            currentUser.soldItems.push({
+                                id: product.id,
+                                name: product.name,
+                                category: product.category,
+                                price: product.price,
+                                soldDate: new Date().toLocaleDateString('fa-IR')
+                            });
+                            
+                            totalSales += product.price;
+                            
+                            // ارسال گزارش برای هر فروش
+                            sendAutoReport('sale', product);
+                        }
+                    });
+                    
+                    // اگر بیش از یک محصول فروخته شده، گزارش کلی هم ارسال شود
+                    if (checkedProducts.length > 1) {
+                        sendAutoReport('multiple_sales', {
+                            count: checkedProducts.length,
+                            total: totalSales
+                        });
+                    }
+                    
+                    // بهروزرسانی کاربر در لیست کاربران
+                    const userIndex = users.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        users[userIndex] = currentUser;
+                    }
+                    
+                    saveData();
+                    renderUserProducts();
+                    renderUserSoldItems();
+                    updateUserStats();
+                    updateUserProductsChecklist();
+                    
+                    alert('محصولات با موفقیت به عنوان فروخته شده ثبت شدند!');
+                }
+            });
+            
+            // رویداد پشتیبانگیری کاربر
+            document.getElementById('backupData').addEventListener('click', backupUserData);
+            
+            // رویداد بازیابی دادههای کاربر
+            document.getElementById('restoreData').addEventListener('click', function() {
+                document.getElementById('restoreFile').click();
+            });
+            
+            document.getElementById('restoreFile').addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    restoreUserData(e.target.files[0]);
+                    e.target.value = '';
+                }
+            });
+            
+            // رویداد پاک کردن دادههای کاربر
+            document.getElementById('clearData').addEventListener('click', clearUserData);
+            
+            // رویدادهای پرینت
+            document.getElementById('printProducts').addEventListener('click', function() {
+                alert('امکان پرینت در این نسخه دمو موجود نیست!');
+            });
+            
+            document.getElementById('printCategories').addEventListener('click', function() {
+                alert('امکان پرینت در این نسخه دمو موجود نیست!');
+            });
+            
+            document.getElementById('printSales').addEventListener('click', function() {
+                alert('امکان پرینت در این نسخه دمو موجود نیست!');
+            });
+            
+            document.getElementById('printInventory').addEventListener('click', function() {
+                alert('امکان پرینت در این نسخه دمو موجود نیست!');
+            });
+            
+            // رویدادهای پنل مدیریت
+            document.getElementById('createStoreAccount').addEventListener('click', function() {
+                document.getElementById('createStoreModal').style.display = 'flex';
+            });
+            
+            document.getElementById('backupAllData').addEventListener('click', backupAllData);
+            
+            document.getElementById('resetAllData').addEventListener('click', resetAllData);
+            
+            document.getElementById('viewAllData').addEventListener('click', function() {
+                alert(`آمار کلی سیستم:\n\nتعداد فروشگاهها: ${users.length}\nکل محصولات: ${users.reduce((total, user) => total + user.products.length, 0)}\nکل فروشها: ${users.reduce((total, user) => total + user.soldItems.length, 0)}`);
+            });
+            
+            // رویداد فرم ایجاد حساب جدید توسط مدیر
+            document.getElementById('createStoreForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const storeName = document.getElementById('newStoreName').value;
+                const ownerName = document.getElementById('newOwnerName').value;
+                const email = document.getElementById('newStoreEmail').value;
+                const password = document.getElementById('newStorePassword').value;
+                
+                if (createStoreByAdmin(storeName, ownerName, email, password)) {
+                    alert('حساب جدید برای فروشگاه با موفقیت ایجاد شد.');
+                    document.getElementById('createStoreModal').style.display = 'none';
+                    document.getElementById('createStoreForm').reset();
+                    renderAdminDashboard();
+                }
+            });
+            
+            // رویداد بستن مودالها
+            document.querySelectorAll('.close-modal').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.modal').style.display = 'none';
+                });
+            });
+            
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
-
 </html>
-
-
